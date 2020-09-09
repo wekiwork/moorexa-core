@@ -11,5 +11,6 @@
     "\/===moorexa.css": "\/\/Applications\/MAMP\/htdocs\/Todo-App\/Core\/Adapter\/Errors\/css\/moorexa.css",
     ".\/.\/src\/utility\/Classes\/===Engine.php": ".\/.\/src\/utility\/Classes\/\/Hyphe\/Engine.php",
     ".\/.\/src\/utility\/Classes\/\/Happy===Directives.php": ".\/.\/src\/utility\/Classes\/\/Happy\/Directives.php",
-    ".\/src\/public\/assets\/js\/===moorexa.min.js": ".\/src\/public\/assets\/js\/\/Rexajs\/moorexa.min.js"
+    ".\/src\/public\/assets\/js\/===moorexa.min.js": ".\/src\/public\/assets\/js\/\/Rexajs\/moorexa.min.js",
+    ".\/.\/..\/Source\/utility\/Classes\/===CliInterface.php": ".\/.\/..\/Source\/utility\/Classes\/\/CLI\/CliInterface.php"
 }
