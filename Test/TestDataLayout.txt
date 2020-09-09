@@ -1,0 +1,39 @@
+<?php
+// use the factory to create a Faker\Generator instance
+$faker = Faker\Factory::create();
+
+// return array
+return [
+
+    // create data
+    'data' => [
+        
+    ],
+
+    // listen for events
+    'events' => [
+
+        // data accessed
+        'accessed' => function(array &$data)
+        {
+
+        },
+
+        // data updated
+        'updated' => function(array &$data, array $newData)
+        {
+
+        },
+
+        // feel free to add yours..
+    ],
+
+    // collection allowed to utilize this test data
+    'collection' => [
+
+        // collection identifier
+        'basic' => 'data'
+
+        // you can add more
+    ]
+];

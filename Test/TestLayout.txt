@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @package Basic Test for {className}
+ * @author Amadi Ifeanyi <amadiify.com>
+ *
+ * These are traits below. You can use which ever you desire, and also extend phpunit to
+ * enjoy both benefits. The goal here is to increase productivity, use only what you need.
+ */
+use Lightroom\Test\DatabaseTest;
+use Lightroom\Test\EventTest;
+use Lightroom\Test\RouteTest;
+use Lightroom\Test\SecurityTest;
+use Lightroom\Test\TemplateTest;
+use Lightroom\Test\TestCase as LightroomTestCase;
+
+class {className}
+{
+    use LightroomTestCase;
+    
+    /**
+     * @var array $triggers
+     * You can add some basic triggers to fast track your tests.
+     * eg. 'callMethod1' => 'my_very_long_test_name'
+     */
+     public $triggers = [];
+}

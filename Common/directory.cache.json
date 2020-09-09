@@ -1,0 +1,8 @@
+{
+    ".\/src\/public\/assets\/js\/===moorexa.js": ".\/src\/public\/assets\/js\/\/Rexajs\/moorexa.js",
+    ".\/.\/src\/lab\/library\/\/Sockets===SocketEventHandler.php": ".\/.\/src\/lab\/library\/\/Sockets\/SocketEventHandler.php",
+    ".\/.\/src\/lab\/library\/\/Sockets===SocketEvents.php": ".\/.\/src\/lab\/library\/\/Sockets\/SocketEvents.php",
+    ".\/.\/src\/utility\/Classes\/\/Messaging===Mail.php": ".\/.\/src\/utility\/Classes\/\/Messaging\/Mail.php",
+    ".\/.\/src\/lab\/library\/\/FileDB===FileDBClient.php": ".\/.\/src\/lab\/library\/\/FileDB\/FileDBClient.php",
+    ".\/.\/src\/lab\/library\/\/FileDB===FileDBMethods.php": ".\/.\/src\/lab\/library\/\/FileDB\/FileDBMethods.php"
+}
