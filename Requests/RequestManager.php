@@ -51,7 +51,7 @@ class RequestManager implements RequestManagerInterface, PayloadProcess
         self::$defaultRequestManager = $requestManager;
 
         // include functions
-        include_once FRAMEWORK_BASE_PATH . '/Requests/Functions.php';
+        include_once __DIR__ . '/../Requests/Functions.php';
 
         // st closure
         $this->next = $callback;

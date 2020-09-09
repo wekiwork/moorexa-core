@@ -163,7 +163,7 @@ class Payload
         if ($register === true) :
 
             // check for middlewares
-            $middlewareJson = DISTRIBUTION_BASE_PATH . '/middlewares.json';
+            $middlewareJson = SOURCE_BASE_PATH . '/middlewares.json';
 
             // check if it exists
             if (file_exists($middlewareJson)) :
@@ -185,7 +185,7 @@ class Payload
                     if (self::$middlewareNamespaceRegistered === false) :
 
                         // @var string $directory
-                        $directory = DISTRIBUTION_BASE_PATH . '/Utility/Middlewares';
+                        $directory = SOURCE_BASE_PATH . '/utility/Middlewares';
 
                         if (is_dir($directory)) :
 

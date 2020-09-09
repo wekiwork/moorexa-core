@@ -62,7 +62,7 @@ class SecurityGroup
         self::$registeredSecurityGroup = [$className, $callback];
 
         // include security group functions
-        include_once FRAMEWORK_BASE_PATH . '/Security/Functions.php';
+        include_once __DIR__ . '/../Security/Functions.php';
     }
 
     /**

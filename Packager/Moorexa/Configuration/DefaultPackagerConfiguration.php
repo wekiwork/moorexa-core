@@ -77,7 +77,7 @@ trait DefaultPackagerConfiguration
         return function()
         {
             // register base file
-            $this->setBaseFile(DISTRIBUTION_BASE_PATH . '/config/paths.php');
+            $this->setBaseFile(SOURCE_BASE_PATH . '/config/paths.php');
         };
     }
 
@@ -141,7 +141,7 @@ trait DefaultPackagerConfiguration
         $stackFiles = array(
            
            // import function library globally
-           $file->path(FRAMEWORK_BASE_PATH . '/Functions/FunctionLibrary.php')->dependency([
+           $file->path(__DIR__ . '/../../../Functions/FunctionLibrary.php')->dependency([
                'class' => [
                  \Lightroom\Core\FunctionWrapper::class => 'for creating function that can be attached to a class or made globally.',
                ],
@@ -171,7 +171,7 @@ trait DefaultPackagerConfiguration
                  * this exported variable would be used in FunctionLibrary,
                  * to request for the global functions with the functionWrapper class
                  */
-                'globalfunc' => FRAMEWORK_BASE_PATH . '/Functions/GlobalFunctions.php']
+                'globalfunc' => __DIR__ . '/../../../Functions/GlobalFunctions.php']
             ));
 
              $this->loadClass(Constants::class, $this->import([ PATH_TO_CONFIG . '/constants'])->export([
@@ -193,10 +193,10 @@ trait DefaultPackagerConfiguration
         return function(){
             
             // set security group certificate
-            $this->setEncryptionCertificate(FRAMEWORK_BASE_PATH . '/Security/Certificates/certificate.key');
+            $this->setEncryptionCertificate(__DIR__ . '/../../Security/Certificates/certificate.key');
 
             // set encryption salt
-            $this->setEncryptionSalt(FRAMEWORK_BASE_PATH . '/Security/Salts/128bitSaltedString.key');
+            $this->setEncryptionSalt(__DIR__ . '/../../Security/Salts/128bitSaltedString.key');
         };
     }
 

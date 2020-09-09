@@ -58,7 +58,7 @@ trait RouterControls
 
         if ($config === null) :
 
-            $config = Yaml::parseFile( DISTRIBUTION_BASE_PATH . '/config.yaml');
+            $config = Yaml::parseFile( SOURCE_BASE_PATH . '/config.yaml');
 
         endif;
 

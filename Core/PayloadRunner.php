@@ -182,7 +182,7 @@ class PayloadRunner implements PayloadRunnerInterface
         {
             // process complete
             $processComplete = true;
-            
+
             // register process
             $processCalled[$process] = 'registered #' .time();
 

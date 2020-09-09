@@ -92,7 +92,7 @@ class TestManager implements CliInterface
                 if (!\is_null($testFile)) :
 
                     // read layout file
-                    $testLayout = FRAMEWORK_BASE_PATH . '/Test/TestLayout.txt';
+                    $testLayout = __DIR__ . '/../../Test/TestLayout.txt';
 
                     // continue if test layout exists
                     if (\file_exists($testLayout)) :
@@ -148,7 +148,7 @@ class TestManager implements CliInterface
                 if (!\is_null($testDataFile)) :
 
                     // read layout file
-                    $testLayout = FRAMEWORK_BASE_PATH . '/Test/TestDataLayout.txt';
+                    $testLayout = __DIR__ . '/../../Test/TestDataLayout.txt';
 
                     // continue if test layout exists
                     if (\file_exists($testLayout)) :

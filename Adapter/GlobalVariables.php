@@ -37,7 +37,7 @@ class GlobalVariables
             self::$registeredVariableClass = $instance;
 
             // include Global variable function
-            require_once FRAMEWORK_BASE_PATH . '/Functions/GlobalVariables.php';
+            require_once __DIR__ . '/../Functions/GlobalVariables.php';
 
         endif;
     }

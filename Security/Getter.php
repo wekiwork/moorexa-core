@@ -55,7 +55,7 @@ trait Getter
     public function getEncryptionSalt() : string 
     {
         // salt file path
-        $filepath = $this->encryptionSalt != '' ? $this->encryptionSalt : FRAMEWORK_BASE_PATH . '/Security/Salts/8bitSaltedString.key';
+        $filepath = $this->encryptionSalt != '' ? $this->encryptionSalt : __DIR__ . '/../Security/Salts/8bitSaltedString.key';
 
         // return from salts or use fallback salt
         return File::read($filepath, $this->fallbackSalt);
@@ -69,7 +69,7 @@ trait Getter
     public function getEncryptionCertificate() : string 
     {
         // salt file path
-        $filepath = $this->encryptionCertificate != '' ? $this->encryptionCertificate : FRAMEWORK_BASE_PATH . '/Security/Certificates/certificate.key';
+        $filepath = $this->encryptionCertificate != '' ? $this->encryptionCertificate : __DIR__ . '/../Security/Certificates/certificate.key';
 
         // return from salts or use fallback salt
         return File::read($filepath, $this->fallbackSalt);

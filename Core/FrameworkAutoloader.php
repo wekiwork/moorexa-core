@@ -129,7 +129,22 @@ class FrameworkAutoloader
         $pathFound = false;
 
         // check size
-        if (count((array) self::$namespaces) > 0)
+        if (count((array) self::$namespaces) > 0) 
+
+            // closure function to include file
+            $includeFile = function(string $classWithBasePath, $other = null) use (&$pathFound)
+            {
+                // check if file exists, and break out of loop if yes
+                if (file_exists($classWithBasePath) || file_exists($other)) :
+                    
+                    // path found
+                    $pathFound = true;
+
+                    // include file
+                    include_once (file_exists($classWithBasePath) ? $classWithBasePath : $other);
+
+                endif;
+            };
 
             // we use foreach loop
             foreach (self::$namespaces as $namespace => $basePath) :
@@ -139,27 +154,38 @@ class FrameworkAutoloader
 
                 // compare string with size
                 if (strncmp($className, $namespace, $sizeOfNameSpace) === 0) :
-                
-                    // convert \ to / and get base path
-                    $classWithBasePath = $basePath . '/' . substr(str_replace('\\', '/', $className), $sizeOfNameSpace) . '.php';
 
-                    // check if file exists, and break out of loop if yes
-                    if (file_exists($classWithBasePath)) :
-                    
-                        // path found
-                        $pathFound = true;
+                    // @var string $file
+                    $file = '/' . substr(str_replace('\\', '/', $className), $sizeOfNameSpace) . '.php';
 
-                        // include file
-                        include_once $classWithBasePath;
+                    if (is_array($basePath)) :
 
-                        // break loop
-                        break;
+                        // run loop
+                        foreach ($basePath as $basePathFolder) :
+
+                            // include file
+                            if ($basePathFolder !== null) $includeFile($basePathFolder . $file, $basePathFolder . '/' . basename($file));
+                            
+                            // break loop
+                            if ($pathFound) break;
+
+                        endforeach;
+
+                    else:
+
+                        // convert \ to / and get base path
+                        $includeFile($basePath . $file);
 
                     endif;
+                    
+
+                    // break loop
+                    if ($pathFound) break;
                     
                 endif;
                 
             endforeach;
+
         
         // clean up
         unset($sizeOfNameSpace, $namespace, $classWithBasePath, $basePath);
