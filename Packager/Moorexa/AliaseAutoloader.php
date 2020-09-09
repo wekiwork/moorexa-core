@@ -65,11 +65,11 @@ trait AliaseAutoloader
             // check if path exists
             if (file_exists($path)) :
 
-                // update autoload passed
-                $autoloaderPassed = true;
-
                 // include path
                 include_once $path;
+
+                // update autoload passed
+                if (class_exists($class)) $autoloaderPassed = true;
 
             endif;
 

@@ -281,7 +281,7 @@ class ControllerLoader
         if ($controller == self::$starterTitle) return self::loadStarterPack('main');
 
         // load controller base path checker
-        if (file_exists(func()->const('extra') . '/controllers.php')) include_once func()->const('extra') . '/controllers.php';
+        if (file_exists(func()->const('extra') . '/controllers.php')) include_once get_path(func()->const('extra'), '/controllers.php');
 
         // Get controller class
         $controllerClass = self::getControllerClass($controller);
@@ -595,7 +595,7 @@ class ControllerLoader
              * 
              * This includes the payload registry for external load stack
              */
-            $payloadRegistry = func()->const('services') . '/payloads.php';
+            $payloadRegistry = get_path(func()->const('services'), '/payloads.php');
 
             // include registry if file exists
             if (file_exists($payloadRegistry)) include_once $payloadRegistry;

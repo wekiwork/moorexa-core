@@ -23,7 +23,7 @@ class MoorexaDatabaseHandler implements DatabaseHandlerInterface
     public function loadConfiguration(ConfigurationInterface $config, string $source = '') : ConfigurationInterface
     {
         // load configuration file
-        include_once SOURCE_BASE_PATH . '/database/database.php';
+        include_once get_path(SOURCE_BASE_PATH, '/database/database.php');
 
         if ($source == '') :
             // load from default
@@ -43,7 +43,7 @@ class MoorexaDatabaseHandler implements DatabaseHandlerInterface
 
         // register relationship directory
         FrameworkAutoloader::registerNamespace([
-            'Relationships\\' => SOURCE_BASE_PATH . '/database/Relationships/'
+            'Relationships\\' => get_path(SOURCE_BASE_PATH , '/database/Relationships/')
         ]);
 
         // return ConfigurationInterface

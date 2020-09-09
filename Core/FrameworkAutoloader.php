@@ -132,16 +132,16 @@ class FrameworkAutoloader
         if (count((array) self::$namespaces) > 0) 
 
             // closure function to include file
-            $includeFile = function(string $classWithBasePath, $other = null) use (&$pathFound)
+            $includeFile = function(string $classWithBasePath, $other = null) use (&$pathFound, &$className)
             {
                 // check if file exists, and break out of loop if yes
                 if (file_exists($classWithBasePath) || file_exists($other)) :
-                    
-                    // path found
-                    $pathFound = true;
 
                     // include file
                     include_once (file_exists($classWithBasePath) ? $classWithBasePath : $other);
+
+                    // does class exists
+                    if (class_exists($className)) $pathFound = true;
 
                 endif;
             };
@@ -161,8 +161,14 @@ class FrameworkAutoloader
                     if (is_array($basePath)) :
 
                         // run loop
-                        foreach ($basePath as $basePathFolder) :
+                        foreach ($basePath as $basePathFolder => $replacePath) :
 
+                            // replace path
+                            if (is_string($basePathFolder) && is_string($replacePath)) $file = str_replace($replacePath, '', $file);
+
+                            // manage switch
+                            if (is_numeric($basePathFolder)) $basePathFolder = $replacePath;
+                            
                             // include file
                             if ($basePathFolder !== null) $includeFile($basePathFolder . $file, $basePathFolder . '/' . basename($file));
                             
@@ -177,7 +183,6 @@ class FrameworkAutoloader
                         $includeFile($basePath . $file);
 
                     endif;
-                    
 
                     // break loop
                     if ($pathFound) break;
@@ -244,7 +249,7 @@ class FrameworkAutoloader
             foreach (self::$registeredPrivateAutoloader as $class) :
 
                 // call autoloaderRequested
-                if ($class->autoloaderRequested($className)) :
+                if ($class->autoloaderRequested($className) && class_exists($className)) :
 
                     $autoload = true;
                     break;

@@ -220,7 +220,7 @@ class BootCoreEngine
         // create an anonymous
         $aliasesObject = is_object(self::$packageManager) && 
                          method_exists(self::$packageManager, 'registerAliases') ? self::$packageManager->registerAliases($aliases) : null;
-
+                         
         // load aliases object
         if (is_object($aliasesObject)) :
 

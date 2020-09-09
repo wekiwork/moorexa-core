@@ -91,3 +91,59 @@ function logger(string $logger = '')
 {
     return $logger != '' ? Logbook::loadLogger($logger) : Logbook::loadDefault();
 }
+
+/**
+ * @method File Handler
+ * @param string $directory
+ * @param string $file 
+ * This function would help allow overriding of files from top to bottom
+ * 
+ * @return string
+ */
+function get_path(string $directory, string $file) : string
+{
+    // @var string path
+    $path = $directory . $file;
+
+    // check from DIRECTORY_OVERRIDE 
+    if (defined('DIRECTORY_OVERRIDE')) :
+
+        // load the array
+        if (is_array(DIRECTORY_OVERRIDE)) :
+
+            // ilterate
+            foreach (DIRECTORY_OVERRIDE as $constantName => $options) :
+
+                
+                // get the constant name
+                if (constant($constantName) === $directory) :
+
+                    // so we load other options
+                    if (is_array($options)) :
+
+                        // load options
+                        foreach ($options as $constantName => $directory) :
+
+                            // try load path with constant
+                            $constantPath = constant($constantName) . '/' . $directory . $file;
+
+                            // remove '//'
+                            $constantPath = preg_replace('/[\/]{2,}/', '/', $constantPath);
+
+                            // does file exists, replace path
+                            if (file_exists($constantPath) || is_dir($constantPath)) return $constantPath;
+
+                        endforeach;
+                    endif;
+
+                endif;
+
+            endforeach;
+
+        endif;
+
+    endif;
+
+    // return string 
+    return $path;
+}

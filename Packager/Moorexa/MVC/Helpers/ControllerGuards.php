@@ -35,7 +35,7 @@ class ControllerGuards implements GuardInterface, RouteGuardInterface
         self::$instance =& $this;
 
         // include global route file
-        include_once func()->const('services') . '/guards.php';
+        include_once get_path(func()->const('services'), '/guards.php');
     }
 
     /**

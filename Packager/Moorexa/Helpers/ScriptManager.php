@@ -13,7 +13,7 @@ class ScriptManager
     public function __construct()
     {
         // @var string $scriptFile
-        $scriptFile = func()->const('services') . '/scripts.php';
+        $scriptFile = get_path(func()->const('services') , '/scripts.php');
 
         // if it exists then load
         if (file_exists($scriptFile)) include_once $scriptFile;

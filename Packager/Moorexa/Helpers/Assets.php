@@ -74,12 +74,12 @@ class Assets
 			$file = $this->loadSubsribers('image', $file);
 		
 			// set the image path
-			$this->image_path = $this->image_path == '' ? func()->const('image') . '/' : $this->image_path;
+			$this->image_path = $this->image_path == '' ? get_path(func()->const('image'), '/') : $this->image_path;
 
 			// @var array $incomingUrl
 			$incomingUrl = URL::getIncomingUri();
 
-			$cache = func()->const('assets') . '/assets.paths.json';
+			$cache = get_path(func()->const('assets'), '/assets.paths.json');
 			$size = null;
 			$fileNameCopy = $file;
 			$fileNoUpdate = $file;
@@ -174,7 +174,7 @@ class Assets
 						endif;
 
 						// return string
-						return func()->url(func()->deepscan(func()->const('image') . '/', 'no-image-available.png'));
+						return func()->url(func()->deepscan(get_path(func()->const('image'), '/'), 'no-image-available.png'));
 					};
 					
 					switch (is_dir($this->image_path . $controller)) :
@@ -271,7 +271,7 @@ class Assets
 			$file = $this->loadSubsribers('css', $file);
 
 			// set the css path
-			$this->css_path = $this->css_path == '' ? func()->const('css') . '/' : $this->css_path;
+			$this->css_path = $this->css_path == '' ? get_path(func()->const('css'), '/') : $this->css_path;
 
 			// @var array $incomingUrl
 			$incomingUrl = URL::getIncomingUri();
@@ -287,7 +287,7 @@ class Assets
 
 			endif;
 
-			$cache = func()->const('assets') . '/assets.paths.json';
+			$cache = get_path(func()->const('assets'), '/assets.paths.json');
 			$fileNameCopy = $file;
 			$fileNoUpdate = $file . $queryInPath;
 			$controller = $incomingUrl[0];
@@ -298,6 +298,7 @@ class Assets
 				$dir = $this->css_path;
 				$getPath = $dir . $file;
 				$parse = parse_url($fileNameCopy);
+				$filePath = get_path(func()->const('assets'), '/' . $file);
 
 				if (file_exists($file)) :
 				
@@ -311,12 +312,12 @@ class Assets
 				
 					$scan = $getPath;
 				
-				elseif (file_exists(func()->const('assets') . '/' . $file)) :
+				elseif (file_exists($filePath)) :
 				
-					$scan = func()->const('assets') . '/' . $file;
+					$scan = $filePath;
 				
 				else:
-				
+					
 					$scan = func()->deepscan($dir, $file);
 
 				endif;
@@ -474,7 +475,7 @@ class Assets
 
 			endif;
 
-			$cache = func()->const('assets') . '/assets.paths.json';
+			$cache = get_path(func()->const('assets'), '/assets.paths.json');
 			$fileNameCopy = $file;
 			$fileNoUpdate = $file . $queryInPath;
 			$controller = $incomingUrl[0];
@@ -484,6 +485,7 @@ class Assets
 			{
 				$dir = $this->js_path;
 				$getPath = $dir . $file;
+				$filePath = get_path(func()->const('assets'), '/' . $file);
 
 				$parse = parse_url($fileNameCopy);
 
@@ -499,9 +501,9 @@ class Assets
 				
 					$scan = $getPath;
 				
-				elseif (file_exists(func()->const('assets') . '/' . $file)) :
+				elseif (file_exists($filePath)) :
 				
-					$scan = func()->const('assets') . '/' . $file;
+					$scan = $filePath;
 				
 				else:
 				
@@ -602,7 +604,7 @@ class Assets
 			// @var array $incomingUrl
 			$incomingUrl = URL::getIncomingUri();
 
-			$cache = func()->const('assets') . 'assets.paths.json';
+			$cache = get_path(func()->const('assets'), 'assets.paths.json');
 			$filecopy = $file;
 			$fileNoUpdate = $file;
 			$controller = $incomingUrl[0];
@@ -639,11 +641,11 @@ class Assets
 				return $scan;
 			};
 
-			switch (is_dir(func()->const('media') . '/' . $controller)) :
+			switch (is_dir(get_path(func()->const('media'), '/' . $controller))) :
 			
 				case true:
 
-					$dir = func()->const('media') . '/' . $controller . '/';
+					$dir = get_path(func()->const('media'), '/' . $controller . '/');
 					$getPath = $dir . $file;
 
 					if (file_exists($getPath)) :
