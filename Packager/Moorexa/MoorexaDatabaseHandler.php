@@ -45,6 +45,7 @@ class MoorexaDatabaseHandler implements DatabaseHandlerInterface
         FrameworkAutoloader::registerNamespace([
             'Relationships\\' => get_path(func()->const('database') , '/Relationships/')
         ]);
+        
 
         // return ConfigurationInterface
         return $config;
