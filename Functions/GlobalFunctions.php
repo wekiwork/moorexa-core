@@ -147,3 +147,28 @@ function get_path(string $directory, string $file) : string
     // return string 
     return $path;
 }
+
+/**
+ * @method FilePath Handler
+ * @param string $path 
+ * @return string
+ */
+function get_path_from_constant(string $path) : string 
+{
+    // check if path has %% var
+    if (preg_match('/[%](\S+?)[%]/', $path, $constant)) :
+
+        // constant name should be in index 1
+        $constantName = $constant[1];
+
+        // remove constant from path
+        $path = str_replace($constant[0], '', $path);
+
+        // get real path
+        $path = get_path(constant($constantName), $path);
+
+    endif;
+
+    // return path
+    return $path;
+}
