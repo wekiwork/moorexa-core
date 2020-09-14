@@ -141,7 +141,7 @@ class FrameworkAutoloader
                     include_once (file_exists($classWithBasePath) ? $classWithBasePath : $other);
 
                     // does class exists
-                    if (class_exists($className)) $pathFound = true;
+                    if (class_exists($className) || trait_exists($className) || interface_exists($className)) $pathFound = true;
 
                 endif;
             };
