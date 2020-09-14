@@ -146,8 +146,8 @@ class TemplateHandler implements TemplateHandlerInterface
         else:
 
             // maybe xml or json string
-            self::formatDataAndRender($path);
-
+            if (self::$renderCalled === false) self::formatDataAndRender($path);
+            
         endif;
     }
 
