@@ -119,7 +119,7 @@ trait FileQueryCache
         $hash = md5($source) . '.php';
 
         // return base path
-        return func()->const('database') . '/Sql/' . $hash;
+        return get_path(func()->const('database'), '/Sql/' . $hash);
     }
 
     /**

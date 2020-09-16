@@ -386,16 +386,30 @@ class QueryPromise implements QueryPromiseInterface
                     // set bind data
                     if ($method != 'select') $this->setBindData($statement->bind);
 
-                    // remove bind and query
-                    $statement->bind = []; $statement->query = '';
-
                      // add last id
                     if ($method == 'insert') : 
 
                         // get last inserted id
                         $this->id = array_key_exists('pdoInstance', $properties) ? $statement->pdoInstance->lastInsertId() : $this->id;
 
+                        // try get if id == 0
+                        if ($this->id == '0') :
+
+                            // set the table
+                            $query = $statement->table($statement->table)->resetBuilder();
+
+                            // make query
+                            $query = self::loadPromise(call_user_func_array([$query, 'get'], $statement->getArgumentsPassed()));
+
+                            // set the id 
+                            $this->id = $query->primary();
+
+                        endif;
+
                     endif;
+
+                    // remove bind and query
+                    $statement->bind = []; $statement->query = '';
 
                 endif;
 

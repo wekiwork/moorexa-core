@@ -1,6 +1,7 @@
 <?php
 namespace Lightroom\Router;
 
+use Closure;
 use Lightroom\Exceptions\{
     ClassNotFound, InterfaceNotFound
 };
@@ -93,5 +94,41 @@ class Middlewares
 
         // return bool
         return $loaded;
+    }
+
+    /**
+     * @method Middlewares apply
+     * @param string $middleware
+     * @param array $request
+     * @param Closure $callback 
+     * @return bool
+     * 
+     * This method would load a middleware, call loaded middleware by request array and execute callback function
+     */
+    public static function apply(string $middleware, array $request, Closure $callback = null) : bool
+    {
+        // append middleware to request
+        $request[] = $middleware;
+
+        // load middleware
+        self::loadMiddleware($middleware, $request);
+
+        // call loaded middleware
+        $load = self::callLoadedMiddleware($request);
+
+        // load callback
+        if ($load && $callback !== null) :
+
+            // remove last
+            array_pop($request);
+
+            // load callback
+            call_user_func($callback, $request);
+
+        endif;
+
+        // return bool
+        return $load;
+
     }
 }

@@ -225,220 +225,230 @@ trait RouterControls
             // get uri
             $uri = self::$requestUri;
 
-            // find url
-            foreach ($uri as $index => $url) :
+            // not general
+            if ($route !== '*') :
 
-                // replace space
-                if (preg_match('/[\s]+/', $url)) $uri[$index] = preg_replace('/[\s]+/', '+', $url);
+                // find url
+                foreach ($uri as $index => $url) :
 
-            endforeach;
-
-            // remove trailing /
-            $route = preg_replace('/^[\/]/', '', $route);
-
-            // check if path has opening brackets
-            if (preg_match_all('/([(].*?[)]?(.*[)]))/', $route, $matches)) :
-            
-                // push to regexp array
-                foreach ($matches[2] as $index => $match) :
-
-                    // regexp key for match
-                    $key = 'uri'.$index;
-
-                    // remove trailing )
-                    $match = preg_replace('/[)]$/','',$match);
-
-                    // replace match with key
-                    $route = str_replace('('.$match.')', '{'.$key.'}', $route);
-
-                    // push to regexp array
-                    $regexpArray[$key] = '('.$match.')';
+                    // replace space
+                    if (preg_match('/[\s]+/', $url)) $uri[$index] = preg_replace('/[\s]+/', '+', $url);
 
                 endforeach;
 
-            endif;
+                // remove trailing /
+                $route = preg_replace('/^[\/]/', '', $route);
 
-            // @var array $parameters
-            $parameters = [];
-
-            // @var bool $success
-            $success = false;
-
-            // get route array
-            $routeArray = explode('/', $route);
-
-            // get requests
-            foreach ($routeArray as $index => $request) :
-
-                if (isset($uri[$index])) :
+                // check if path has opening brackets
+                if (preg_match_all('/([(].*?[)]?(.*[)]))/', $route, $matches)) :
                 
-                    // request passed from the browser at this index
-                    $uriAtIndex = $uri[$index];
+                    // push to regexp array
+                    foreach ($matches[2] as $index => $match) :
 
-                    // replace {} with expression
-                    // search for binding
-                    if (preg_match_all('/([{]([\S\s]*?)[}])/', $request, $matches)) :
-                    
-                        // get bind
-                        foreach ($matches[2] as $bind) :
-                        
-                            // @var bool $optional
-                            $optional = false;
+                        // regexp key for match
+                        $key = 'uri'.$index;
 
-                            // bind original
-                            $bindOriginal = $bind;
+                        // remove trailing )
+                        $match = preg_replace('/[)]$/','',$match);
 
-                            // optional ?
-                            if (strrpos($bind,'?') !== false) :
-                            
-                                // update optional
-                                $optional = true;
+                        // replace match with key
+                        $route = str_replace('('.$match.')', '{'.$key.'}', $route);
 
-                                // remove question mark
-                                $bind = preg_replace('/[?]$/','',$bind);
+                        // push to regexp array
+                        $regexpArray[$key] = '('.$match.')';
 
-                            endif;
-
-                            // check if bind exists in regexpArray
-                            if (isset($regexpArray[$bind])) :
-                            
-                                // get expression
-                                $expression = $regexpArray[$bind];
-
-                                // we run regexp here
-                                // first we replace $req on this index
-                                $request = str_replace('{'.$bindOriginal.'}', $expression, $request);
-
-                                // check for {} bind after str_replace
-                                self::findBindInPath($request, $regexpArray);
-                            
-                            else:
-                            
-                                // @var string $expression
-                                $expression = $optional ? '/([\S]*)/' : '/([\S]+)/';
-
-                                // replace
-                                $request = str_replace('{'.$bindOriginal.'}', $expression, $request);
-
-                                // update regexpArray
-                                $regexpArray[$bind] = $expression;
-
-                            endif;
-
-                            // remove /( or /[ so we can make a proper regexp
-                            $request = preg_replace('/([)|\]])\s{0}[\/]/','$1', preg_replace('/[\/]\s{0}([(|\[])/','$1', $request));
-
-                            // quote request
-                            $quoteRequest = str_replace('\\\\','\\', preg_replace('/(\\\{0}[\/])/','\/',$request));
-
-                            // run regexp
-                            $exec = preg_match_all("/^($quoteRequest)/i", $uriAtIndex, $match, 2);
-
-                            // @var bool $usingLastResort
-                            $usingLastResort = false;
-
-                            // check if execution was successful
-                            if ($exec === 0) :
-                            
-                                if ($index == count($routeArray)-1) :
-                                
-                                    // update uri at index
-                                    $uriAtIndex = implode('/', self::$requestUri);
-
-                                    // update $exec
-                                    $exec = preg_match_all("/^($quoteRequest)/i", $uriAtIndex, $match, 2);
-
-                                    // use last resort
-                                    if ($exec) $usingLastResort = true;
-
-                                endif;
-
-                            endif;
-
-                            if ($exec) :
-                            
-                                // best match
-                                $bestMatch = $match[0][0];
-
-                                if ($usingLastResort === false) :
-                                
-                                    // get params
-                                    $lastRequest = end($match[0]);
-
-                                    // assign parameters
-                                    if ($optional) :
-                                    
-                                        // update route array
-                                        $routeArray[$index] = $bestMatch == '' ? ($uri[$index]) : $bestMatch;
-
-                                        // update last request
-                                        $lastRequest = $bestMatch == '' ? $routeArray[$index] : $lastRequest;
-                                    
-                                    else:
-                                    
-                                        $routeArray[$index] = $bestMatch;
-
-                                    endif;
-
-                                    // update parameter
-                                    $parameters[$bind] = $lastRequest;
-                                
-                                else:
-                                
-                                    // @var array $bestMatchArray
-                                    $bestMatchArray = explode('/', $bestMatch);
-
-                                    // @var int $current
-                                    $current = $index;
-
-                                    foreach($bestMatchArray as $bestMatchAtIndex) :
-                                     
-                                        if ($optional) :
-                                        
-                                            // update $routeArray
-                                            $routeArray[$current] = $bestMatch == '' ? ($uri[$current]) : $bestMatchAtIndex;
-
-                                            // update $result
-                                            $result = $bestMatchAtIndex == '' ? $routeArray[$current] : $bestMatchAtIndex;
-                                        
-                                        else:
-                                        
-                                            // update $routeArray
-                                            $routeArray[$current] = $bestMatchAtIndex;
-
-                                        endif;
-
-                                        // move cursor forward
-                                        $current++;
-
-                                    endforeach;
-
-                                    $parameters[$bind] = $bestMatchArray;
-
-                                endif;
-
-                            endif;
-
-                        endforeach;
-                    
-                    else:
-                    
-                        // update route array
-                        if ($uriAtIndex == $route) $routeArray[$index] = $uri[$index];
-
-                    endif;
-                
-                else:
-                
-                    // remove index.
-                    unset($routeArray[$index]);
-
-                    // set parameter to null.
-                    array_push($parameters, null);
+                    endforeach;
 
                 endif;
 
-            endforeach;
+                // @var array $parameters
+                $parameters = [];
+
+                // @var bool $success
+                $success = false;
+
+                // get route array
+                $routeArray = explode('/', $route);
+
+                // get requests
+                foreach ($routeArray as $index => $request) :
+
+                    if (isset($uri[$index])) :
+                    
+                        // request passed from the browser at this index
+                        $uriAtIndex = $uri[$index];
+
+                        // replace {} with expression
+                        // search for binding
+                        if (preg_match_all('/([{]([\S\s]*?)[}])/', $request, $matches)) :
+                        
+                            // get bind
+                            foreach ($matches[2] as $bind) :
+                            
+                                // @var bool $optional
+                                $optional = false;
+
+                                // bind original
+                                $bindOriginal = $bind;
+
+                                // optional ?
+                                if (strrpos($bind,'?') !== false) :
+                                
+                                    // update optional
+                                    $optional = true;
+
+                                    // remove question mark
+                                    $bind = preg_replace('/[?]$/','',$bind);
+
+                                endif;
+
+                                // check if bind exists in regexpArray
+                                if (isset($regexpArray[$bind])) :
+                                
+                                    // get expression
+                                    $expression = $regexpArray[$bind];
+
+                                    // we run regexp here
+                                    // first we replace $req on this index
+                                    $request = str_replace('{'.$bindOriginal.'}', $expression, $request);
+
+                                    // check for {} bind after str_replace
+                                    self::findBindInPath($request, $regexpArray);
+                                
+                                else:
+                                
+                                    // @var string $expression
+                                    $expression = $optional ? '/([\S]*)/' : '/([\S]+)/';
+
+                                    // replace
+                                    $request = str_replace('{'.$bindOriginal.'}', $expression, $request);
+
+                                    // update regexpArray
+                                    $regexpArray[$bind] = $expression;
+
+                                endif;
+
+                                // remove /( or /[ so we can make a proper regexp
+                                $request = preg_replace('/([)|\]])\s{0}[\/]/','$1', preg_replace('/[\/]\s{0}([(|\[])/','$1', $request));
+
+                                // quote request
+                                $quoteRequest = str_replace('\\\\','\\', preg_replace('/(\\\{0}[\/])/','\/',$request));
+
+                                // run regexp
+                                $exec = preg_match_all("/^($quoteRequest)/i", $uriAtIndex, $match, 2);
+
+                                // @var bool $usingLastResort
+                                $usingLastResort = false;
+
+                                // check if execution was successful
+                                if ($exec === 0) :
+                                
+                                    if ($index == count($routeArray)-1) :
+                                    
+                                        // update uri at index
+                                        $uriAtIndex = implode('/', self::$requestUri);
+
+                                        // update $exec
+                                        $exec = preg_match_all("/^($quoteRequest)/i", $uriAtIndex, $match, 2);
+
+                                        // use last resort
+                                        if ($exec) $usingLastResort = true;
+
+                                    endif;
+
+                                endif;
+
+                                if ($exec) :
+                                
+                                    // best match
+                                    $bestMatch = $match[0][0];
+
+                                    if ($usingLastResort === false) :
+                                    
+                                        // get params
+                                        $lastRequest = end($match[0]);
+
+                                        // assign parameters
+                                        if ($optional) :
+                                        
+                                            // update route array
+                                            $routeArray[$index] = $bestMatch == '' ? ($uri[$index]) : $bestMatch;
+
+                                            // update last request
+                                            $lastRequest = $bestMatch == '' ? $routeArray[$index] : $lastRequest;
+                                        
+                                        else:
+                                        
+                                            $routeArray[$index] = $bestMatch;
+
+                                        endif;
+
+                                        // update parameter
+                                        $parameters[$bind] = $lastRequest;
+                                    
+                                    else:
+                                    
+                                        // @var array $bestMatchArray
+                                        $bestMatchArray = explode('/', $bestMatch);
+
+                                        // @var int $current
+                                        $current = $index;
+
+                                        foreach($bestMatchArray as $bestMatchAtIndex) :
+                                        
+                                            if ($optional) :
+                                            
+                                                // update $routeArray
+                                                $routeArray[$current] = $bestMatch == '' ? ($uri[$current]) : $bestMatchAtIndex;
+
+                                                // update $result
+                                                $result = $bestMatchAtIndex == '' ? $routeArray[$current] : $bestMatchAtIndex;
+                                            
+                                            else:
+                                            
+                                                // update $routeArray
+                                                $routeArray[$current] = $bestMatchAtIndex;
+
+                                            endif;
+
+                                            // move cursor forward
+                                            $current++;
+
+                                        endforeach;
+
+                                        $parameters[$bind] = $bestMatchArray;
+
+                                    endif;
+
+                                endif;
+
+                            endforeach;
+                        
+                        else:
+                        
+                            // update route array
+                            if ($uriAtIndex == $route) $routeArray[$index] = $uri[$index];
+
+                        endif;
+                    
+                    else:
+                    
+                        // remove index.
+                        unset($routeArray[$index]);
+
+                        // set parameter to null.
+                        array_push($parameters, null);
+
+                    endif;
+
+                endforeach;
+
+            else:
+
+                $parameters = [];
+                $routeArray = $uri;
+
+            endif;
 
             // now get call back params
             if ($callback !== null && (is_callable($callback) || is_array($callback) ))
@@ -513,6 +523,9 @@ trait RouterControls
                     endif;
 
                 endforeach;
+
+                // set the new parameters
+                if ($route == '*') $newParameters = [$uri];
 
                 // home path
                 $homePath = false;

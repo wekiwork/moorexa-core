@@ -127,6 +127,9 @@ class Validator implements ValidatorInterface
         {
             $type = isset($_FILES[$str]['type']) ? $_FILES[$str]['type'] : null;
 
+            // get file name
+            $filename = isset($_FILES[$str]['name']) ? explode('.', $_FILES[$str]['name']) : null;
+
             if (!is_null($type))
             {
                 // get type from rule
@@ -137,12 +140,13 @@ class Validator implements ValidatorInterface
                 {
                     $found = false;
 
+                    // get extension
+                    $extension = !is_null($filename) ? end($filename) : '';
+
                     // lets run a loop
                     foreach ($rule as $index => $tp)
-                    {
-                        $tp = strpos($tp, '/') === false ? 'image/'.$tp : $tp;
-                        
-                        if (strtoupper($tp) == strtoupper($type))
+                    {   
+                        if (strtoupper($extension) == strtoupper($tp))
                         {
                             $found = true;
                             break;

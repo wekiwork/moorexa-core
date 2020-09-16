@@ -177,4 +177,13 @@ trait QueriesHelper
 
         return $arrayNew;
     }
+
+    /**
+     * @method QueriesHelper getArgumentsPassed
+     * @return array
+     */
+    public function getArgumentsPassed() : array 
+    {
+        return $this->argumentPassed;
+    }
 }

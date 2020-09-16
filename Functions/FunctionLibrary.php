@@ -325,3 +325,28 @@ $function->create('finder', function(string $config) {
     return $class->find($config);
 
 })->attachTo(GlobalFunctions::class);
+
+/**
+ * @method trueOnly
+ * @param array $list
+ * @return bool
+ * 
+ * This function would return true if everything in the list returns true
+ */
+$function->create('trueOnly', function(array $list) : bool 
+{   
+    // @var bool $default
+    $default = true;
+
+    // check now
+    foreach ($list as $bool) :
+
+        // are we good ??
+        if ($bool !== true) $default = false;
+        
+    endforeach;
+
+    // return bool
+    return $default;
+    
+})->attachTo(GlobalFunctions::class);

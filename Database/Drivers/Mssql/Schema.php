@@ -358,7 +358,7 @@ class Schema implements SchemaInterface, SchemaHelperInterface
         $source = $this->databaseSource == '' ? $database->driverSource : $this->databaseSource;
 
         // return path
-        return func()->const('database') . '/Sql/schema_mssql_'.md5($source).'.sql'; 
+        return get_path(func()->const('database'), '/Sql/schema_mssql_'.md5($source).'.sql'); 
     }
 
     /**
