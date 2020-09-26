@@ -133,4 +133,13 @@ class RouterHandler
     {
         self::$routeFound == true;
     }
+
+    /**
+     * @method RouterHandler resetRouter
+     * @return bool
+     */
+    public static function resetRouter() : void 
+    {
+        self::$routeFound == false;
+    }
 }

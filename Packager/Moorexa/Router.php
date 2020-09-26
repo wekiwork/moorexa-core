@@ -47,7 +47,7 @@ class Router implements RouterInterface
      * @var array $functionsCreated
      */
     private static $functionsCreated = [];
-
+ 
     /**
      * @method Router any
      * @param array $arguments
@@ -162,6 +162,9 @@ class Router implements RouterInterface
      */
     public static function __callStatic(string $method, array $arguments) 
     {
+        // do we have a resolver ??
+        if (preg_match('/^(resolve)/i', $method)) return self::resolver($method, $arguments);
+
         // get request method
         $requestMethod = strtoupper($_SERVER['REQUEST_METHOD']);
 
@@ -400,5 +403,33 @@ class Router implements RouterInterface
 
         // end satisfied check
         endif;
+    }
+
+    /**
+     * @method Router resolver
+     * @param string $method
+     * @param array $arguments
+     * @throws Exception
+     * @return void
+     */
+    public static function resolver(string $method, array $arguments) : void
+    {
+        // remove resolve from method
+        $method = strtolower(preg_replace('/^(resolve)/i', '', $method));
+
+        // resolver callback should be the last parameter
+        $resolverCallback = array_pop($arguments);
+
+        // get the request
+        $request = isset($arguments[0]) ? $arguments[0] : null;
+
+        // can we continue
+        if ($request === null) throw new \Exception('Missing Route to match in Resolver.');
+
+        // build request and add resolver callback function
+        self::$callbackPromises[$_SERVER['REQUEST_METHOD'] . '::' . ltrim($request, '/')] = $resolverCallback;
+
+        // load request now
+        call_user_func_array([static::class, $method], $arguments);
     }
 }

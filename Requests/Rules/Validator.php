@@ -67,10 +67,7 @@ class Validator implements ValidatorInterface
     // a class
     private function a_class($str)
     {
-        if (class_exists($str))
-        {
-            return true;
-        }
+        if (class_exists($str)) return true;
 
         return false;
     }
@@ -78,10 +75,7 @@ class Validator implements ValidatorInterface
      // an array
      private function an_array($data)
      {
-         if (is_array($data))
-         {
-             return true;
-         }
+         if (is_array($data)) return true;
  
          return false;
      }
@@ -89,10 +83,7 @@ class Validator implements ValidatorInterface
     // regxp
     private function regxp(string $str, $regxp)
     {
-        if (preg_match($regxp, $str))
-        {
-            return true;
-        }
+        if (preg_match($regxp, $str)) return true;
 
         return false;
     }
@@ -101,10 +92,8 @@ class Validator implements ValidatorInterface
     private function min(string $str, $length = 2)
     {
         $len = mb_strlen($str);
-        if ($len >= $length)
-        {
-            return true;
-        }
+
+        if ($len >= $length) return true;
 
         return false;
     }
@@ -112,55 +101,113 @@ class Validator implements ValidatorInterface
     // file
     private function file(string $str)
     {
-        if (isset($_FILES[$str]))
-        {
-            return true;
-        }
+        if (isset($_FILES[$str])) return true;
 
+        return false;
+    }
+
+    // file_multiple
+    private function file_multiple(string $str)
+    {
+        // check for name
+        if ($this->file($str)) :
+
+            // if 'name' is an array then we are cool.
+            return (is_array($_FILES[$str]['name'])) ? true : false;
+
+        endif;
+
+        // return default
         return false;
     }
 
     // file type
     private function _filetype(string $str, string $rule)
     {
-        if ($this->file($str))
-        {
-            $type = isset($_FILES[$str]['type']) ? $_FILES[$str]['type'] : null;
-
-            // get file name
-            $filename = isset($_FILES[$str]['name']) ? explode('.', $_FILES[$str]['name']) : null;
-
-            if (!is_null($type))
+        if ($this->file($str)) :
+        
+            $checkFileType = function($file, $fileType) use($str, $rule)
             {
-                // get type from rule
-                $rule = explode(',', $rule);
+                // get file name
+                $filename = isset($file) ? explode('.', $file) : null;
 
-                // has length
-                if (count($rule) > 0)
-                {
-                    $found = false;
+                if (!is_null($filename)) :
+                
+                    // get type from rule
+                    $rule = explode(',', $rule);
 
-                    // get extension
-                    $extension = !is_null($filename) ? end($filename) : '';
+                    // has length
+                    if (count($rule) > 0) :
+                    
+                        $found = false;
 
-                    // lets run a loop
-                    foreach ($rule as $index => $tp)
-                    {   
-                        if (strtoupper($extension) == strtoupper($tp))
-                        {
-                            $found = true;
-                            break;
-                        }
-                    }
+                        // get extension
+                        $extension = !is_null($filename) ? end($filename) : '';
 
-                    return $found;
-                }
+                        // lets run a loop
+                        foreach ($rule as $index => $tp) :
+                        
+                            if (strtoupper($extension) == strtoupper($tp)) :
+                            
+                                $found = true;
+                                break;
 
-                // no rule defined.
-                // return true
-                return true;
-            }
-        }
+                            else:
+
+                                // check file type
+                                if (strpos($tp, '/') !== false) :
+
+                                    // check
+                                    if (strtolower($fileType) == strtolower($tp)) :
+                                        $found = true;
+                                        break;
+                                    endif;
+
+                                endif;
+
+                            endif;
+                        
+                        endforeach;
+
+                        // return bool
+                        return $found;
+
+                    endif;
+
+                    // no rule defined.
+                    // return true
+                    return true;
+                
+                endif;
+            };
+
+            // check file
+            if ($this->file_multiple($str)) :
+
+                // @var int $success 
+                $success = 0;
+
+                // run loop
+                foreach ($_FILES[$str]['name'] as $index => $file) if ($checkFileType($file, $_FILES[$str]['type'][$index])) $success++;
+                
+                // are we good ??
+                if ($success == count($_FILES[$str]['name'])) return true;
+
+                // failed
+                return false;
+
+            endif;
+
+            // get the file name
+            $fileName = (isset($_FILES[$str]['name']) ? $_FILES[$str]['name'] : '');
+
+            // get the file type
+            $fileType = (isset($_FILES[$str]['type']) ? $_FILES[$str]['type'] : '');
+
+            // single file
+            return $checkFileType($fileName, $fileType);
+
+        endif;
 
         return false;
     }
@@ -169,10 +216,8 @@ class Validator implements ValidatorInterface
     private function max(string $str, $length = 200)
     {
         $len = mb_strlen($str);
-        if ($len > $length)
-        {
-            return false;
-        }
+
+        if ($len > $length) return false;
 
         return true;
     }
@@ -198,10 +243,7 @@ class Validator implements ValidatorInterface
     // number 
     private function number(string $str)
     {
-        if (preg_match('/([^0-9]+)/', $str))
-        {
-            return false;
-        }
+        if (preg_match('/([^0-9]+)/', $str)) return false;
 
         return true;
     }
@@ -256,10 +298,7 @@ class Validator implements ValidatorInterface
     // symbols
     private function symbols(string $str)
     {
-        if (preg_match('/([^0-9a-zA-Z\s]+)/', $str))
-        {
-            return true;
-        }
+        if (preg_match('/([^0-9a-zA-Z\s]+)/', $str)) return true;
 
         return false;
     }
@@ -356,10 +395,7 @@ class Validator implements ValidatorInterface
     {
         $url = filter_var($str, FILTER_VALIDATE_URL);
 
-        if ($url !== false)
-        {
-            return true;
-        }
+        if ($url !== false) return true;
 
         return false;
         
@@ -393,10 +429,7 @@ class Validator implements ValidatorInterface
     // match
     private function match(string $str, string $column)
     {
-        if ($this->data[$column] != $str)
-        {
-            return false;
-        }
+        if ($this->data[$column] != $str) return false;
 
         return true;
     }

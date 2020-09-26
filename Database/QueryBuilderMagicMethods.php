@@ -279,7 +279,7 @@ trait QueryBuilderMagicMethods
                                 $value = $arguments[$index];
 
                                 // if html is not allowed then remove tags
-                                if (!$this->allowHTML) $value = strip_tags($value);
+                                if (!$this->allowHTMLTags) $value = strip_tags($value);
 
                                 // if slashes is allowed then add slashes
                                 if ($this->allowSlashes) $value = addslashes($value);

@@ -547,7 +547,15 @@ class Filter
                 if (isset($filterData[$key]) && $filterData[$key] == '' && isset($rule[1])) $canContinue = true;
 
                 // check if key exists in filter data
-                if ($canContinue) $filterData[$key] = $rule[1];
+                if ($canContinue) :
+
+                    // just add
+                    $filterData[$key] = $rule[1];
+                    
+                    // load callable
+                    if ($rule[1] !== null && is_callable($rule[1])) $filterData[$key] = call_user_func($rule[1]);
+                    
+                endif;
 
                 // convert to string only
                 $filter[$key] = $rule[0];

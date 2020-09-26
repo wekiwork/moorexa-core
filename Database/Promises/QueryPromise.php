@@ -393,13 +393,16 @@ class QueryPromise implements QueryPromiseInterface
                         $this->id = array_key_exists('pdoInstance', $properties) ? $statement->pdoInstance->lastInsertId() : $this->id;
 
                         // try get if id == 0
-                        if ($this->id == '0') :
+                        if ($this->id == '0' || $this->id == null) :
+
+                            // @var array $argumentPasssed
+                            $argumentPasssed = $statement->getArgumentsPassed();
 
                             // set the table
                             $query = $statement->table($statement->table)->resetBuilder();
 
                             // make query
-                            $query = self::loadPromise(call_user_func_array([$query, 'get'], $statement->getArgumentsPassed()));
+                            $query = self::loadPromise(call_user_func_array([$query, 'get'], $argumentPasssed));
 
                             // set the id 
                             $this->id = $query->primary();

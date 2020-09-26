@@ -1,6 +1,7 @@
 <?php
 namespace Lightroom\Packager\Moorexa\Helpers;
 
+use Closure;
 use Lightroom\Exceptions\ClassNotFound;
 use Lightroom\Exceptions\InterfaceNotFound;
 use Lightroom\Packager\Moorexa\Router;
@@ -27,6 +28,16 @@ trait RouterControls
     public static $routeRequests = [];
 
     /**
+     * @var array $requestUri
+     */
+    public  static $requestUri = [];
+
+    /**
+     * @var array $routeMatched
+     */
+    public static $routeMatched = [];
+
+    /**
      * @var Router $instance
      */
     private static $instance = null;
@@ -37,19 +48,29 @@ trait RouterControls
     private $isMatched = false;
 
     /**
+     * @var array $request
+     */
+    private $request = [];
+
+    /**
      * @var int $routeFound
      */
     private static $routeFound = 0;
 
     /**
-     * @var array $requestUri
+     * @var string $currentRoute
      */
-    public  static $requestUri = [];
+    private static $currentRoute = '';
 
     /**
-     * @var array $routeMatched
+     * @var array $routes
      */
-    public static $routeMatched = [];
+    private static $routes = [];
+
+    /**
+     * @var array $callbackPromises
+     */
+    private static $callbackPromises = [];
 
     // load configuration
     public static function loadConfig() : array 
@@ -58,7 +79,7 @@ trait RouterControls
 
         if ($config === null) :
 
-            $config = Yaml::parseFile( SOURCE_BASE_PATH . '/config.yaml');
+            $config = Yaml::parseFile( get_path(SOURCE_BASE_PATH, '/config.yaml'));
 
         endif;
 
@@ -101,6 +122,178 @@ trait RouterControls
     public static function setRouteMatched(string $route) : void
     {
         self::$routeMatched = explode('/', $route);
+    }
+
+    // prepare middleware for route.
+    public function middleware(string $middleware) : RouterInterface
+    {   
+        // load middleware if matched
+        if (Router::$routeSatisfied) try {
+            Middlewares::loadMiddleware($middleware, self::$routeMatched);
+        } catch (ClassNotFound $e) {
+        } catch (InterfaceNotFound $e) {
+        }
+
+        // return object.
+        return $this;
+    }
+
+    // prepare guards for route
+    public function guard(...$arguments) :  RouterInterface
+    {
+        // add route matched
+        $arguments[] = self::$routeMatched;
+
+        // load guard if matched
+        if (Router::$routeSatisfied) :
+            
+            // get the return value from loadGuard
+            $loadReturnValue = call_user_func_array([Guards::class, 'loadGuard'], $arguments);
+
+            // update routeMatched if return value is an array
+            if (is_array($loadReturnValue)) self::$routeMatched = $loadReturnValue;
+
+        endif;
+
+        // return object
+        return $this;
+    }
+
+    // allow matching of route
+    public static function reset() : void 
+    {
+        Router::$routeSatisfied = false;
+        self::$routeFound = 0; 
+        self::$instance->isMatched = false;
+
+        // update Router Handler
+        RouterHandler::resetRouter();
+    }
+
+    // call routes next to current route
+    public static function next(string $route)
+    {
+        // return default route or call others
+        return self::nextPrevHelper('next', $route);
+    }
+
+    // call routes previous to current route
+    public static function prev(string $route)
+    {
+        // return default route or call others
+        return self::nextPrevHelper('prev', $route);
+    }
+
+    // helper for next and prev buttons
+    private static function nextPrevHelper(string $type, string $route)
+    {
+        // get array index
+        $index = array_search(self::$currentRoute, array_keys(self::$routes));
+
+        // get routes
+        $routes = array_values(self::$routes);
+
+        // get all from index
+        $routes = ($type == 'next') ? array_splice($routes, $index+1) : array_splice($routes, 0, $index-1);
+
+        // load routes
+        foreach ($routes as $routeParam) :
+
+            // reset route
+            self::reset();
+
+            // call execute method
+            call_user_func_array([static::class, 'executeRoute'], $routeParam);
+
+            // are we good ??
+            if (self::$routeFound !== 0) return implode('/', self::$routeMatched);
+
+        endforeach;
+
+        // return default route
+        return $route;
+    }
+
+    // find binds from complex paths
+    private static function findBindInPath(string &$route, array &$regexpArray) : void
+    {
+        if (preg_match_all('/([{]([a-zA-Z0-9_-]*?)[}])/', $route, $matches1)) :
+        
+            foreach ($matches1[2] as $index => $bind) :
+            
+                // @var bool $optional
+                $optional = false;
+
+                // bind original
+                $bindOriginal = $bind;
+
+                // optional ?
+                if (strrpos($bind,'?') !== false) :
+                
+                    // update optional
+                    $optional = true;
+
+                    // remove question mark
+                    $bind = preg_replace('/[?]$/','',$bind);
+
+                endif;
+
+                // check if bind exists in $regexpArray
+                if (isset($regexpArray[$bind])) :
+                
+                    // get expression
+                    $expression = $regexpArray[$bind];
+
+                else:
+                
+                    // @var string $expression
+                    $expression = $optional ? '/([\S]*)/' : '/([\S]+)/';
+
+                    // update $regexpArray
+                    $regexpArray[$bind] = $expression;
+
+                endif;
+
+                // replace bind
+                $route = str_replace('{'.$bindOriginal.'}', $expression, $route);
+
+                // check again and call if match
+                if (preg_match('/([{]([a-zA-Z0-9_-]*?)[}])/', $route)) :
+                
+                    // find binds again
+                    self::findBindInPath($route, $regexpArray);
+
+                endif;
+            
+            endforeach;
+
+        endif;
+    }
+
+    // read config scanner
+    private static function readConfigScanner($configTree, array $configArray)
+    {
+        if (count($configArray) != 0) :
+        
+            // @var string $child
+            $child = array_shift($configArray);
+
+            // check if $xml has child
+            if (isset($configTree[$child])) :
+            
+                // read from config tree
+                $configTree = self::readConfigScanner($configTree[$child], $configArray);
+            
+            else:
+            
+                $configTree = '';
+
+            endif;
+
+        endif;
+
+        // return mixed
+        return $configTree;
     }
 
     // has no closure function
@@ -210,6 +403,12 @@ trait RouterControls
     // execute route request
     private static function executeRoute(string $route, $callback, $regexpArray = [], $requestMethod = 'GET')
     {
+        // @var string $currentRoute
+        $currentRoute = $route . '_' . (time() * mt_rand(1,20));
+
+        // store requests
+        self::$routes[$currentRoute] = func_get_args();
+
         // create instance
         if (self::$instance === null) self::$instance = new self;
 
@@ -221,9 +420,12 @@ trait RouterControls
 
         // continue if no route has been matched
         if (self::$routeFound == 0 && RouterHandler::routeNotFound()) :
-        
+
             // get uri
             $uri = self::$requestUri;
+
+            // set the request
+            self::$instance->request = $uri;
 
             // not general
             if ($route !== '*') :
@@ -546,7 +748,7 @@ trait RouterControls
 
                 // @var string $routeString
                 $routeString = implode('/', $routeArray);
-
+                
                 // compare $pathUri with $uri
                 // success
                 if ( ($routeString == implode('/', $uri)) || $homePath == true)
@@ -572,17 +774,43 @@ trait RouterControls
 
                         endif;
 
-                        // call closure function and get return value
-                        $returnValue = preg_replace('/(^[\/])/', '', call_user_func_array($callback, $arguments));
-
-                        // update RouterControls
-                        self::$routeMatched = explode('/', $returnValue);
+                        // route was found
                         self::$routeFound++;
+
+                        // all good
                         Router::$routeSatisfied = true;
+                        self::$currentRoute = $currentRoute;
 
                         // update Router Handler
                         RouterHandler::routeFound();
-                    
+
+                        // get returned route
+                        $returnedRoute = function() use (&$callback, &$arguments)
+                        {
+                            // call closure function and get return value
+                            $returnValue = preg_replace('/(^[\/])/', '', call_user_func_array($callback, $arguments));
+
+                            // update RouterControls
+                            self::$routeMatched = explode('/', $returnValue);
+                        };
+
+                        // build name
+                        $name = $_SERVER['REQUEST_METHOD'] . '::' . $route;
+
+                        // check if we have a promise for it
+                        if (isset(self::$callbackPromises[$name])) :
+
+                            // load callback
+                            call_user_func(self::$callbackPromises[$name], $returnedRoute, self::$requestUri);
+
+                        else:
+
+                            // get returned route
+                            $returnedRoute();
+
+                        endif;
+
+                        
                     endif;
                 }
             }
@@ -591,121 +819,5 @@ trait RouterControls
 
         // return instance
         return self::$instance;
-    }
-
-    // find binds from complex paths
-    private static function findBindInPath(string &$route, array &$regexpArray) : void
-    {
-        if (preg_match_all('/([{]([a-zA-Z0-9_-]*?)[}])/', $route, $matches1)) :
-        
-            foreach ($matches1[2] as $index => $bind) :
-            
-                // @var bool $optional
-                $optional = false;
-
-                // bind original
-                $bindOriginal = $bind;
-
-                // optional ?
-                if (strrpos($bind,'?') !== false) :
-                
-                    // update optional
-                    $optional = true;
-
-                    // remove question mark
-                    $bind = preg_replace('/[?]$/','',$bind);
-
-                endif;
-
-                // check if bind exists in $regexpArray
-                if (isset($regexpArray[$bind])) :
-                
-                    // get expression
-                    $expression = $regexpArray[$bind];
-
-                else:
-                
-                    // @var string $expression
-                    $expression = $optional ? '/([\S]*)/' : '/([\S]+)/';
-
-                    // update $regexpArray
-                    $regexpArray[$bind] = $expression;
-
-                endif;
-
-                // replace bind
-                $route = str_replace('{'.$bindOriginal.'}', $expression, $route);
-
-                // check again and call if match
-                if (preg_match('/([{]([a-zA-Z0-9_-]*?)[}])/', $route)) :
-                
-                    // find binds again
-                    self::findBindInPath($route, $regexpArray);
-
-                endif;
-            
-            endforeach;
-
-        endif;
-    }
-
-    private static function readConfigScanner($configTree, array $configArray)
-    {
-        if (count($configArray) != 0) :
-        
-            // @var string $child
-            $child = array_shift($configArray);
-
-            // check if $xml has child
-            if (isset($configTree[$child])) :
-            
-                // read from config tree
-                $configTree = self::readConfigScanner($configTree[$child], $configArray);
-            
-            else:
-            
-                $configTree = '';
-
-            endif;
-
-        endif;
-
-        // return mixed
-        return $configTree;
-    }
-
-    // prepare middleware for route.
-    public function middleware(string $middleware) : RouterInterface
-    {
-        // load middleware if matched
-        if ($this->isMatched) try {
-            Middlewares::loadMiddleware($middleware, self::$routeMatched);
-        } catch (ClassNotFound $e) {
-        } catch (InterfaceNotFound $e) {
-        }
-
-        // return object.
-        return $this;
-    }
-
-    // prepare guards for route
-    public function guard(...$arguments) :  RouterInterface
-    {
-        // add route matched
-        $arguments[] = self::$routeMatched;
-
-        // load guard if matched
-        if ($this->isMatched) :
-            
-            // get the return value from loadGuard
-            $loadReturnValue = call_user_func_array([Guards::class, 'loadGuard'], $arguments);
-
-            // update routeMatched if return value is an array
-            if (is_array($loadReturnValue)) self::$routeMatched = $loadReturnValue;
-
-        endif;
-
-        // return object
-        return $this;
     }
 }

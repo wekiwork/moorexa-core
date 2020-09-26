@@ -44,7 +44,7 @@ class QueueHandler
             $class->setJobName($taskName);
             $class->setJob($closureFunction);
             $class = serialize($class);
-
+            
             // message to send
             $msg = new AMQPMessage($class, array('delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT));
 
@@ -71,7 +71,7 @@ class QueueHandler
      * @param mixed $taskBody
      */
     public static function triggerEvent(string $eventName, string $taskName, $taskBody)
-    {
+    {   
         // load callback from configuration
         $configuration = (isset($_ENV['rabbitmq']) ? $_ENV['rabbitmq'] : null);
 
@@ -90,7 +90,10 @@ class QueueHandler
                 $reflection = new \ReflectionClass($callbackClass);
 
                 // check required interface
-                if (!$reflection->implementInterface(CallbackInterface::class)) return logger()->error('QueueHandler callback class ' . $callbackClass . ' did not implement required interface #{'.CallbackInterface::class.'}.');
+                if (!$reflection->implementsInterface(CallbackInterface::class)) return logger()->error('QueueHandler callback class ' . $callbackClass . ' did not implement required interface #{'.CallbackInterface::class.'}.');
+
+                // create instance
+                $callbackClass = new $callbackClass;
 
                 // call method now
                 call_user_func([$callbackClass, $eventName], $taskName, $taskBody);
