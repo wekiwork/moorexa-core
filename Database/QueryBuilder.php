@@ -758,6 +758,15 @@ trait QueryBuilder
     }
 
     /**
+     * @method QueryBuilder pdo
+     * @return PDO
+     */
+    public function pdo()
+    {
+        return $this->pdoInstance;
+    }
+
+    /**
      * @method QueryBuilder callMethod
      * @param string $method
      * @param array $arguments

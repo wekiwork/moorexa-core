@@ -75,7 +75,7 @@ class BootCoreEngine
             $headers = getallheaders();
 
             // check for content type
-            $contentType = (isset($headers['Content-Type'])) ? $headers['Content-Type'] : (isset($headers['content-type']) ? $headers['content-type'] : $contentType);
+            $contentType = (isset($headers['Set-Content-Type'])) ? $headers['Set-Content-Type'] : (isset($headers['set-content-type']) ? $headers['set-content-type'] : $contentType);
 
             // clean 
             $headers = null;
