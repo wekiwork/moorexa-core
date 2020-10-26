@@ -47,7 +47,7 @@ class Model implements ModelInterface
     /**
      * @var array $arguments
      */
-    private $arguments = [];
+    protected $arguments = [];
 
     /**
      * @var array $modelMethodReturnValues

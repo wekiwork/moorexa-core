@@ -158,6 +158,18 @@ class Filter
     }
 
     /**
+     * @method Filter has
+     * @param string $key
+     * @return array
+     * 
+     * Returns true if filter has a perticular key
+     */
+    public function has(string $key)
+    {
+        return (post()->has($key) || get()->has($key)) ? true : false;
+    }
+
+    /**
      * @method Filter clear
      * @return bool
      * 
@@ -547,15 +559,7 @@ class Filter
                 if (isset($filterData[$key]) && $filterData[$key] == '' && isset($rule[1])) $canContinue = true;
 
                 // check if key exists in filter data
-                if ($canContinue) :
-
-                    // just add
-                    $filterData[$key] = $rule[1];
-                    
-                    // load callable
-                    if ($rule[1] !== null && is_callable($rule[1])) $filterData[$key] = call_user_func($rule[1]);
-                    
-                endif;
+                if ($canContinue) $filterData[$key] = $rule[1];
 
                 // convert to string only
                 $filter[$key] = $rule[0];

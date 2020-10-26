@@ -158,6 +158,9 @@ class Container
                 // get class name
                 $className = self::getClassName($this->classPlaceholder);
 
+                // return class instance
+                if (is_object($className)) return $className;
+
                 // load singleton
                 if (count($arguments) == 0) return ClassManager::singleton($className);
 
@@ -197,7 +200,7 @@ class Container
                 if ($reflectionProperty->isStatic()) return $reflectionProperty->getValue();
 
                 // get class instance
-                $instance = ClassManager::singleton($className);
+                $instance = is_string($className) ? ClassManager::singleton($className) : $className;
 
                 // return value
                 return $instance->{$property};
@@ -239,7 +242,7 @@ class Container
                 else:
 
                     // get class instance
-                    $instance = ClassManager::singleton($className);
+                    $instance = is_string($className) ? ClassManager::singleton($className) : $className;
 
                     // set value
                     $instance->{$property} = $value;
@@ -257,10 +260,10 @@ class Container
     /**
      * @method Container add
      * @param string $classPlaceholder
-     * @param string $class 
+     * @param mixed $class 
      * @return Container
      */
-    public function add(string $classPlaceholder, string $class) : Container
+    public function add(string $classPlaceholder, $class) : Container
     {
         // add to registry
         self::$registry[$classPlaceholder] = $class;
@@ -321,13 +324,13 @@ class Container
         $className = self::getClassName($classPlaceholder);
 
         // load processor method
-        self::loadProcessorMethod('classCalled', $className);
+        if(is_string($className)) self::loadProcessorMethod('classCalled', $className);
 
         // get reflection
         $reflection = new \ReflectionClass($className);
 
         // check for method
-        if (!$reflection->hasMethod($method)) throw new MethodNotFound($className, $method);
+        if (!$reflection->hasMethod($method) && is_string($className)) throw new MethodNotFound($className, $method);
 
         // get method
         $reflectionMethod = $reflection->getMethod($method);
@@ -336,7 +339,7 @@ class Container
         if ($reflectionMethod->isStatic()) return call_user_func_array([$className, $method], $arguments);
 
         // load non static method
-        $instance = ClassManager::singleton($className);
+        $instance = is_string($className) ? ClassManager::singleton($className) : $className;
 
         // return method
         return call_user_func_array([$instance, $method], $arguments);
@@ -386,11 +389,11 @@ class Container
     /**
      * @method Container getClassName
      * @param string $classPlaceholder
-     * @return string
+     * @return mixed
      * @throws Exception
      * @throws ClassNotFound
      */
-    private static function getClassName(string $classPlaceholder) : string
+    private static function getClassName(string $classPlaceholder)
     {
         // check if registered, throw exception
         if (!isset(self::$registry[$classPlaceholder])) throw new Exception('Container could not load class for '. $classPlaceholder.'. It just was not found.');
@@ -399,7 +402,7 @@ class Container
         $className = self::$registry[$classPlaceholder];
 
         // throw exception if class could not be found
-        if (!class_exists($className)) throw new ClassNotFound($className);
+        if (is_string($className) && !class_exists($className)) throw new ClassNotFound($className);
 
         // return class name
         return $className;
